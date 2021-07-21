@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./IPositionReferral.sol";
 
-interface PositionToken {
+interface IPositionToken {
     function mint(address receiver, uint256 amount) external;
     function transferTaxRate() external view returns (uint16) ;
     function balanceOf(address account) external view returns (uint256) ;
@@ -55,7 +55,7 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
     }
 
     // The Position TOKEN!
-    PositionToken public position;
+    IPositionToken public position;
     // Dev address.
     address public devAddress;
     // Deposit Fee address
@@ -109,7 +109,7 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
     );
 
     constructor(
-        PositionToken _position,
+        IPositionToken _position,
         uint256 _startBlock,
         uint256 _positionPerBlock
     ) public {
