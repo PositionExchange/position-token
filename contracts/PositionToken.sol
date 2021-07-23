@@ -264,6 +264,9 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _rTotal = _currentRate.mul(_tTotal);
         uint256 _newRate = _getRate();
         _rOwned[receiver] =  _rOwned[receiver].add(amount.mul(_newRate));
+        if(_isExcluded[receiver]){
+            _tOwned[receiver] = _tOwned[receiver].add(amount);
+        }
         emit Transfer(address(0), receiver, amount);
     }
 
