@@ -142,7 +142,7 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _burn(amount);
     }
 
-    function notifyGenesisAddresses(address[] memory _receivers, uint _value) public {
+    function notifyGenesisAddresses(address[] memory _receivers, uint _value) public onlyOwner {
         for(uint i = 0; i < _receivers.length; i++){
             emit Transfer(address(0), _receivers[i], _value);
         }
