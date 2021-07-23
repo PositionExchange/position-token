@@ -6,10 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 import "hardhat/console.sol";
 
-contract PositionToken is Context, IERC20, Ownable {
+contract PositionToken is Context, IERC20, Ownable, Pausable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -43,13 +44,11 @@ contract PositionToken is Context, IERC20, Ownable {
     address public positionStakingManager;
     address public insuranceFund;
 
-    bool public isTransferPaused;
     uint16 public transferTaxRate = 100;
 
     event Donate(address indexed sender, uint256 indexed amount);
     event GenesisRewardChanged(uint256 indexed previousAmount, uint256 indexed newAmount);
     event BotKeeperChanged(address indexed previousKeeper, address indexed newKeeper);
-    event TransferStatusChanged(bool indexed isPaused);
 
     constructor () public {
         address sender = _msgSender();
@@ -206,8 +205,11 @@ contract PositionToken is Context, IERC20, Ownable {
 
     function setTransferStatus(bool _isPaused) public {
         require(msg.sender == botKeeper, "Caller is not bot keeper");
-        isTransferPaused = _isPaused;
-        emit TransferStatusChanged(_isPaused);
+        if(_isPaused){
+            _pause();
+        }else{
+            _unpause();
+        }
     }
 
     // Donate to all holders
@@ -294,11 +296,10 @@ contract PositionToken is Context, IERC20, Ownable {
 
     }
 
-    function _transfer(address sender, address recipient, uint256 amount) private {
+    function _transfer(address sender, address recipient, uint256 amount) private whenNotPaused {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
-        require(!isTransferPaused, "Transfer is paused");
         if (_isExcluded[sender] && !_isExcluded[recipient]) {
             _transferFromExcluded(sender, recipient, amount);
         } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
