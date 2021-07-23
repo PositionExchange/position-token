@@ -204,7 +204,6 @@ contract PositionToken is Context, IERC20, Ownable {
     }
 
 
-
     function setTransferStatus(bool _isPaused) public {
         require(msg.sender == botKeeper, "Caller is not bot keeper");
         isTransferPaused = _isPaused;
@@ -271,6 +270,7 @@ contract PositionToken is Context, IERC20, Ownable {
     }
 
     function _mint(address receiver, uint256 amount) private {
+        require(amount % 100000*10**_decimals == 0, "Cannot mint this amount");
         require(!_isExcluded[receiver], "Cannot mint to excluded account");
         uint256 _currentRate = _getRate();
         _tTotal = _tTotal.add(amount);
@@ -282,6 +282,7 @@ contract PositionToken is Context, IERC20, Ownable {
     }
 
     function _burn(uint256 amount) private {
+        require(amount % 100000*10**_decimals == 0, "Cannot burn this amount");
         address sender = _msgSender();
         uint256 _currentRate = _getRate();
         _tTotal = _tTotal.sub(amount);
