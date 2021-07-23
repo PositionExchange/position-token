@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-import "hardhat/console.sol";
-
 contract PositionToken is Context, IERC20, Ownable, Pausable {
     using SafeMath for uint256;
     using Address for address;
@@ -40,8 +38,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     uint256 public whitelistSaleDistributed;
     // bot keeper helps watch the price drop then pause the transfer function
     address public botKeeper;
-    address public positionStakingManager;
-    address public insuranceFund;
     address public treasuryContract;
 
     uint16 public transferTaxRate = 100;
@@ -105,6 +101,10 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         return true;
     }
 
+    function treasuryTransfer(address recipient, uint256 amount) public onlyTreasury {
+        _treasuryTransfer(_msgSender(), recipient, amount);
+    }
+
     function treasuryTransfer(address[] memory recipients, uint256[] memory amounts) public onlyTreasury {
         for(uint256 i; i<recipients.length; i++){
             _treasuryTransfer(_msgSender(), recipients[i], amounts[i]);
@@ -144,12 +144,11 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         return _tFeeTotal;
     }
 
-    function mint(address _receiver, uint amount) public {
-        require(msg.sender == positionStakingManager || msg.sender == insuranceFund, "not authorized");
+    function mint(address _receiver, uint amount) public onlyTreasury {
         _mint(_receiver, amount);
     }
 
-    function burn(uint amount) public {
+    function burn(uint amount) public onlyTreasury {
         _burn(amount);
     }
 
@@ -192,13 +191,7 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         botKeeper = _newKeeper;
     }
 
-    function setPositionStakingManager(address _newAddress) public onlyOwner {
-        positionStakingManager = _newAddress;
-    }
 
-    function setInsuranceFund(address _newAddress) public onlyOwner {
-        insuranceFund = _newAddress;
-    }
 
     function setTreasuryAddress(address _newAddress) public onlyOwner {
         emit TreasuryContractChanged(treasuryContract, _newAddress);
@@ -239,7 +232,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     function tokenFromReflection(uint256 rAmount) public view returns(uint256) {
         require(rAmount <= _rTotal, "Amount must be less than total reflections");
         uint256 currentRate =  _getRate();
-        console.log("Current Rate: %s", currentRate);
         return rAmount.div(currentRate);
     }
 
@@ -423,8 +415,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         uint256 rSupply = _rTotal;
         uint256 tSupply = _tTotal;
         for (uint256 i = 0; i < _excluded.length; i++) {
-            // console.log("rSupply: %s, tSupply: %s ", rSupply, tSupply);
-            // console.log("tOwnered: %s, rOwneed: %s", _tOwned[_excluded[i]], _rOwned[_excluded[i]]);
             if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
             rSupply = rSupply.sub(_rOwned[_excluded[i]]);
             tSupply = tSupply.sub(_tOwned[_excluded[i]]);
