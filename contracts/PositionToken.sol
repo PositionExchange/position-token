@@ -40,7 +40,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     uint256 public whitelistSaleDistributed;
     // bot keeper helps watch the price drop then pause the transfer function
     address public botKeeper;
-    address public whitelistSaleContract;
     address public positionStakingManager;
     address public insuranceFund;
 
@@ -178,10 +177,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     function setBotKeeper(address _newKeeper) public onlyOwner {
         emit BotKeeperChanged(botKeeper, _newKeeper);
         botKeeper = _newKeeper;
-    }
-
-    function setWhitelistSaleContract(address _newAddress) public onlyOwner {
-        whitelistSaleContract = _newAddress;
     }
 
     function setPositionStakingManager(address _newAddress) public onlyOwner {
