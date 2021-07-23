@@ -42,12 +42,19 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     address public botKeeper;
     address public positionStakingManager;
     address public insuranceFund;
+    address public treasuryContract;
 
     uint16 public transferTaxRate = 100;
 
     event Donate(address indexed sender, uint256 indexed amount);
     event GenesisRewardChanged(uint256 indexed previousAmount, uint256 indexed newAmount);
     event BotKeeperChanged(address indexed previousKeeper, address indexed newKeeper);
+    event TreasuryContractChanged(address indexed previusAAddress, address indexed newAddress);
+
+    modifier onlyTreasury() {
+        require(_msgSender() == treasuryContract, "Only Treasury");
+        _;
+    }
 
     constructor () public {
         address sender = _msgSender();
@@ -96,6 +103,12 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     function transfer(address recipient, uint256 amount) public override returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
+    }
+
+    function treasuryTransfer(address[] memory recipients, uint256[] memory amounts) public onlyTreasury {
+        for(uint256 i; i<recipients.length; i++){
+            _treasuryTransfer(_msgSender(), recipients[i], amounts[i]);
+        }
     }
 
     function allowance(address owner, address spender) public view override returns (uint256) {
@@ -185,6 +198,11 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
 
     function setInsuranceFund(address _newAddress) public onlyOwner {
         insuranceFund = _newAddress;
+    }
+
+    function setTreasuryAddress(address _newAddress) public onlyOwner {
+        emit TreasuryContractChanged(treasuryContract, _newAddress);
+        treasuryContract = _newAddress;
     }
 
     function setTransferStatus(bool _isPaused) public {
@@ -284,6 +302,20 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         }
         emit Transfer(sender, address(0), amount);
 
+    }
+
+    function _treasuryTransfer(address sender, address recipient, uint256 amount) private whenNotPaused {
+        if (_isExcluded[sender] && !_isExcluded[recipient]) {
+            _transferFromExcluded(sender, recipient, amount);
+        } else if (_isExcluded[sender] && _isExcluded[recipient]) {
+            _transferBothExcluded(sender, recipient, amount);
+        } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
+            _transferToExcluded(sender, recipient, amount);
+        } else if (!_isExcluded[sender] && !_isExcluded[recipient]) {
+            _transferStandard(sender, recipient, amount);
+        } else {
+            _transferStandard(sender, recipient, amount);
+        }
     }
 
     function _transfer(address sender, address recipient, uint256 amount) private whenNotPaused {
