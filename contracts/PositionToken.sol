@@ -187,7 +187,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         insuranceFund = _newAddress;
     }
 
-
     function setTransferStatus(bool _isPaused) public {
         require(msg.sender == botKeeper, "Caller is not bot keeper");
         if(_isPaused){
@@ -277,6 +276,9 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _rTotal = _currentRate.mul(_tTotal);
         uint256 _newRate = _getRate();
         _rOwned[sender] =  _rOwned[sender].sub(amount.mul(_newRate));
+        if(_isExcluded[sender]){
+             _tOwned[sender] = _tOwned[sender].sub(amount);
+        }
         emit Transfer(sender, address(0), amount);
 
     }
