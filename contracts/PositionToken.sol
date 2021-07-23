@@ -58,7 +58,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _rTotal = ((_max - (_max % _tTotal)));
         _rOwned[sender] =  _rTotal;
         emit Transfer(address(0), sender, amount);
-        _registerWhitelistSaleDistribution();
     }
 
     function name() public view returns (string memory) {
@@ -146,15 +145,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         for(uint i = 0; i < _receivers.length; i++){
             emit Transfer(address(0), _receivers[i], _value);
         }
-    }
-
-    function distributeWhitelistSale(address _receiver, uint _value) public {
-        // only owner and whitelistsale contract can call
-        require(msg.sender == owner() || msg.sender == whitelistSaleContract, "not authorized");
-        whitelistSaleDistributed = whitelistSaleDistributed.add(_value);
-        require(whitelistSaleDistributed <= WHITELIST_SALE_AMOUNT, "exceeds max");
-        _rOwned[_receiver] =  _rOwned[_receiver].add(_value.mul(_getRate()));
-        emit Transfer(address(0), _receiver, _value);
     }
 
     function distributeAirdrop(address[] memory _receivers, uint _value) public onlyOwner {
@@ -357,13 +347,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
-    }
-
-    function _registerWhitelistSaleDistribution() private {
-        uint256 _currentRate = _getRate();
-        _tTotal = _tTotal.add(WHITELIST_SALE_AMOUNT);
-        // rTotal should increase as well
-        _rTotal = _currentRate.mul(_tTotal);
     }
 
     function _upgradeAddressLevel(address _account) private {
