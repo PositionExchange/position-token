@@ -2,11 +2,43 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { Ownable } from "./Ownable";
+export type { Pausable } from "./Pausable";
+export type { ERC20 } from "./ERC20";
+export type { IERC20Metadata } from "./IERC20Metadata";
 export type { IERC20 } from "./IERC20";
-export type { PositionToken } from "./PositionToken";
-export type { PositionWhitelistSale } from "./PositionWhitelistSale";
+export type { ConvertLPToken } from "./ConvertLPToken";
+export type { IPositionReferral } from "./IPositionReferral";
+export type { IPositionToken } from "./IPositionToken";
+export type { IPosiV2Migrate } from "./IPosiV2Migrate";
+export type { MockToken } from "./MockToken";
+export type { PosiRefund } from "./PosiRefund";
+export type { IPosiTreasury } from "./IPosiTreasury";
+export type { PosiStakingManager } from "./PosiStakingManager";
+export type { IPositionTokenV1 } from "./IPositionTokenV1";
+export type { PosiStakingManagerV1 } from "./PosiStakingManagerV1";
+export type { PositionReferral } from "./PositionReferral";
+export type { PositionTokenV1 } from "./PositionTokenV1";
+export type { PositionTokenV2 } from "./PositionTokenV2";
+export type { PosiTreasury } from "./PosiTreasury";
+export type { PosiV2Migrate } from "./PosiV2Migrate";
 
 export { Ownable__factory } from "./factories/Ownable__factory";
+export { Pausable__factory } from "./factories/Pausable__factory";
+export { ERC20__factory } from "./factories/ERC20__factory";
+export { IERC20Metadata__factory } from "./factories/IERC20Metadata__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
-export { PositionToken__factory } from "./factories/PositionToken__factory";
-export { PositionWhitelistSale__factory } from "./factories/PositionWhitelistSale__factory";
+export { ConvertLPToken__factory } from "./factories/ConvertLPToken__factory";
+export { IPositionReferral__factory } from "./factories/IPositionReferral__factory";
+export { IPositionToken__factory } from "./factories/IPositionToken__factory";
+export { IPosiV2Migrate__factory } from "./factories/IPosiV2Migrate__factory";
+export { MockToken__factory } from "./factories/MockToken__factory";
+export { PosiRefund__factory } from "./factories/PosiRefund__factory";
+export { IPosiTreasury__factory } from "./factories/IPosiTreasury__factory";
+export { PosiStakingManager__factory } from "./factories/PosiStakingManager__factory";
+export { IPositionTokenV1__factory } from "./factories/IPositionTokenV1__factory";
+export { PosiStakingManagerV1__factory } from "./factories/PosiStakingManagerV1__factory";
+export { PositionReferral__factory } from "./factories/PositionReferral__factory";
+export { PositionTokenV1__factory } from "./factories/PositionTokenV1__factory";
+export { PositionTokenV2__factory } from "./factories/PositionTokenV2__factory";
+export { PosiTreasury__factory } from "./factories/PosiTreasury__factory";
+export { PosiV2Migrate__factory } from "./factories/PosiV2Migrate__factory";

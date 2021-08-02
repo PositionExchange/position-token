@@ -3,6 +3,8 @@ import { BigNumber, Signer } from "ethers";
 import {expect, use} from "chai"
 import {PositionToken} from "../src/types/PositionToken"
 import web3Utils from "web3-utils"
+import {PosiStakingManager} from "../src/types/PosiStakingManager";
+import {PosiTreasury} from "../src/types/PosiTreasury"
 
 const {deployMockContract, provider, solidity} = waffle
 use(solidity)
@@ -11,6 +13,9 @@ const [deployer, sender2, sender3, sender4] = provider.getWallets()
 const bn2String = (bn: any) => fromWei((bn).toString())
 const toWei = (n: string) => web3Utils.toWei(n.toString())
 const fromWei = (n: string | BigNumber) => web3Utils.fromWei(n.toString())
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 describe("PositionToken", function () {
   let accounts: Signer[];
@@ -23,6 +28,29 @@ describe("PositionToken", function () {
     ); //(() as unknown) as PositionToken;
     positionToken = ((await _positionToken.deploy()) as unknown) as PositionToken
   });
+
+	const setupPosiStakingManager = async () : Promise<PosiStakingManager> => {
+		const _posiStakingManager = await ethers.getContractFactory(
+			"PosiStakingManager"
+		)
+		const positionStakingManager = ((await _posiStakingManager.deploy(positionToken.address, 0, toWei('1'))) as unknown) as PosiStakingManager
+
+		await positionStakingManager.add(100, positionToken.address, 0, 1000, false)
+		await positionToken.approve(positionStakingManager.address, ethers.constants.MaxInt256)
+		// await positionToken.setPositionStakingManager((positionStakingManager.address))
+		return positionStakingManager
+	}
+
+  const setUpTreasury = async (): Promise<PosiTreasury> => {
+    const _posiTreasury = await ethers.getContractFactory(
+      "PosiTreasury"
+    )
+    const posiTreasury = ((await _posiTreasury.deploy(positionToken.address)) as unknown) as PosiTreasury
+    await positionToken.setTreasuryAddress(posiTreasury.address)
+    await positionToken.excludeAccount(deployer.address)
+    await posiTreasury.setPositionStakingManager(deployer.address)
+    return posiTreasury
+  }
 
   const getTotalSupply = () => positionToken.totalSupply().then(bn2String)
   const getBalanceOf = (address: string) => positionToken.balanceOf(address).then(bn2String)
@@ -180,6 +208,25 @@ describe("PositionToken", function () {
     // await positionToken.mint(sender3.address, toWei(amount.toString()));
     // await positionToken.includeAccount(sender3.address);
     // console.log(await getBalanceOf(sender3.address))
+  })
+
+	it("test with positionStakingManager", async () => {
+		const positionStakingManager = await setupPosiStakingManager()
+		const depositTx = await positionStakingManager.deposit(0, 1000000, ethers.constants.AddressZero)
+		const tx1 =  await positionStakingManager.updatePool(0)
+    await sleep(2000)
+		const tx =  await positionStakingManager.updatePool(0)
+    await sleep(5000)
+		await positionStakingManager.updatePool(0)
+    await sleep(5000)
+		await positionStakingManager.updatePool(0)
+    await sleep(5000)
+		await positionStakingManager.updatePool(0)
+	})
+
+  it("should mint with treasury success", async () => {
+    
+
   })
   
 

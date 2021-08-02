@@ -22,6 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface PositionTokenInterface extends ethers.utils.Interface {
   functions: {
     "AIRDROP_AMOUNT()": FunctionFragment;
+    "BASE_MINT()": FunctionFragment;
     "WHITELIST_SALE_AMOUNT()": FunctionFragment;
     "aidropDistributed()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
@@ -32,7 +33,6 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "distributeAirdrop(address[],uint256)": FunctionFragment;
-    "distributeWhitelistSale(address,uint256)": FunctionFragment;
     "donate(uint256)": FunctionFragment;
     "excludeAccount(address)": FunctionFragment;
     "genesisBalance(address)": FunctionFragment;
@@ -41,24 +41,20 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     "getRate()": FunctionFragment;
     "includeAccount(address)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
-    "insuranceFund()": FunctionFragment;
     "isExcluded(address)": FunctionFragment;
     "isGenesisAddress(address)": FunctionFragment;
-    "isTransferPaused()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "notifyGenesisAddresses(address[],uint256)": FunctionFragment;
     "owner()": FunctionFragment;
-    "positionStakingManager()": FunctionFragment;
+    "paused()": FunctionFragment;
     "reflectionFromToken(uint256,bool)": FunctionFragment;
     "registerAirdropDistribution()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setBotKeeper(address)": FunctionFragment;
     "setGenesisReward(uint256)": FunctionFragment;
-    "setInsuranceFund(address)": FunctionFragment;
-    "setPositionStakingManager(address)": FunctionFragment;
     "setTransferStatus(bool)": FunctionFragment;
-    "setWhitelistSaleContract(address)": FunctionFragment;
+    "setTreasuryAddress(address)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenFromReflection(uint256)": FunctionFragment;
     "totalFees()": FunctionFragment;
@@ -67,7 +63,8 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     "transferFrom(address,address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transferTaxRate()": FunctionFragment;
-    "whitelistSaleContract()": FunctionFragment;
+    "treasuryContract()": FunctionFragment;
+    "treasuryTransfer(address[],uint256[])": FunctionFragment;
     "whitelistSaleDistributed()": FunctionFragment;
   };
 
@@ -75,6 +72,7 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     functionFragment: "AIRDROP_AMOUNT",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "BASE_MINT", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "WHITELIST_SALE_AMOUNT",
     values?: undefined
@@ -102,10 +100,6 @@ interface PositionTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "distributeAirdrop",
     values: [string[], BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "distributeWhitelistSale",
-    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "donate",
@@ -136,18 +130,10 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "insuranceFund",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "isExcluded", values: [string]): string;
   encodeFunctionData(
     functionFragment: "isGenesisAddress",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isTransferPaused",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
@@ -159,10 +145,7 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "positionStakingManager",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "reflectionFromToken",
     values: [BigNumberish, boolean]
@@ -184,19 +167,11 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setInsuranceFund",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setPositionStakingManager",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setTransferStatus",
     values: [boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setWhitelistSaleContract",
+    functionFragment: "setTreasuryAddress",
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
@@ -226,8 +201,12 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "whitelistSaleContract",
+    functionFragment: "treasuryContract",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "treasuryTransfer",
+    values: [string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistSaleDistributed",
@@ -238,6 +217,7 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     functionFragment: "AIRDROP_AMOUNT",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "BASE_MINT", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "WHITELIST_SALE_AMOUNT",
     data: BytesLike
@@ -258,10 +238,6 @@ interface PositionTokenInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "distributeAirdrop",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "distributeWhitelistSale",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
@@ -290,17 +266,9 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "insuranceFund",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "isExcluded", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isGenesisAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isTransferPaused",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
@@ -310,10 +278,7 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "positionStakingManager",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "reflectionFromToken",
     data: BytesLike
@@ -335,19 +300,11 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setInsuranceFund",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setPositionStakingManager",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setTransferStatus",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setWhitelistSaleContract",
+    functionFragment: "setTreasuryAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
@@ -374,7 +331,11 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "whitelistSaleContract",
+    functionFragment: "treasuryContract",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "treasuryTransfer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -388,8 +349,10 @@ interface PositionTokenInterface extends ethers.utils.Interface {
     "Donate(address,uint256)": EventFragment;
     "GenesisRewardChanged(uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "Paused(address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
-    "TransferStatusChanged(bool)": EventFragment;
+    "TreasuryContractChanged(address,address)": EventFragment;
+    "Unpaused(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
@@ -397,8 +360,10 @@ interface PositionTokenInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Donate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GenesisRewardChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TransferStatusChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TreasuryContractChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
 
 export class PositionToken extends BaseContract {
@@ -447,6 +412,8 @@ export class PositionToken extends BaseContract {
   functions: {
     AIRDROP_AMOUNT(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    BASE_MINT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     WHITELIST_SALE_AMOUNT(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     aidropDistributed(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -486,12 +453,6 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    distributeWhitelistSale(
-      _receiver: string,
-      _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     donate(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -526,16 +487,12 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    insuranceFund(overrides?: CallOverrides): Promise<[string]>;
-
     isExcluded(account: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     isGenesisAddress(
       account: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    isTransferPaused(overrides?: CallOverrides): Promise<[boolean]>;
 
     mint(
       _receiver: string,
@@ -553,7 +510,7 @@ export class PositionToken extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    positionStakingManager(overrides?: CallOverrides): Promise<[string]>;
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     reflectionFromToken(
       tAmount: BigNumberish,
@@ -575,17 +532,7 @@ export class PositionToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setGenesisReward(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setInsuranceFund(
-      _newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setPositionStakingManager(
-      _newAddress: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -594,7 +541,7 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setWhitelistSaleContract(
+    setTreasuryAddress(
       _newAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -630,12 +577,26 @@ export class PositionToken extends BaseContract {
 
     transferTaxRate(overrides?: CallOverrides): Promise<[number]>;
 
-    whitelistSaleContract(overrides?: CallOverrides): Promise<[string]>;
+    treasuryContract(overrides?: CallOverrides): Promise<[string]>;
+
+    "treasuryTransfer(address[],uint256[])"(
+      recipients: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "treasuryTransfer(address,uint256)"(
+      recipient: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     whitelistSaleDistributed(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   AIRDROP_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
+
+  BASE_MINT(overrides?: CallOverrides): Promise<BigNumber>;
 
   WHITELIST_SALE_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -676,12 +637,6 @@ export class PositionToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  distributeWhitelistSale(
-    _receiver: string,
-    _value: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   donate(
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -716,16 +671,12 @@ export class PositionToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  insuranceFund(overrides?: CallOverrides): Promise<string>;
-
   isExcluded(account: string, overrides?: CallOverrides): Promise<boolean>;
 
   isGenesisAddress(
     account: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  isTransferPaused(overrides?: CallOverrides): Promise<boolean>;
 
   mint(
     _receiver: string,
@@ -743,7 +694,7 @@ export class PositionToken extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  positionStakingManager(overrides?: CallOverrides): Promise<string>;
+  paused(overrides?: CallOverrides): Promise<boolean>;
 
   reflectionFromToken(
     tAmount: BigNumberish,
@@ -765,17 +716,7 @@ export class PositionToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setGenesisReward(
-    _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setInsuranceFund(
-    _newAddress: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setPositionStakingManager(
-    _newAddress: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -784,7 +725,7 @@ export class PositionToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setWhitelistSaleContract(
+  setTreasuryAddress(
     _newAddress: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -820,12 +761,26 @@ export class PositionToken extends BaseContract {
 
   transferTaxRate(overrides?: CallOverrides): Promise<number>;
 
-  whitelistSaleContract(overrides?: CallOverrides): Promise<string>;
+  treasuryContract(overrides?: CallOverrides): Promise<string>;
+
+  "treasuryTransfer(address[],uint256[])"(
+    recipients: string[],
+    amounts: BigNumberish[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "treasuryTransfer(address,uint256)"(
+    recipient: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   whitelistSaleDistributed(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     AIRDROP_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    BASE_MINT(overrides?: CallOverrides): Promise<BigNumber>;
 
     WHITELIST_SALE_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -863,12 +818,6 @@ export class PositionToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    distributeWhitelistSale(
-      _receiver: string,
-      _value: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     donate(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     excludeAccount(account: string, overrides?: CallOverrides): Promise<void>;
@@ -894,16 +843,12 @@ export class PositionToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    insuranceFund(overrides?: CallOverrides): Promise<string>;
-
     isExcluded(account: string, overrides?: CallOverrides): Promise<boolean>;
 
     isGenesisAddress(
       account: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    isTransferPaused(overrides?: CallOverrides): Promise<boolean>;
 
     mint(
       _receiver: string,
@@ -921,7 +866,7 @@ export class PositionToken extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    positionStakingManager(overrides?: CallOverrides): Promise<string>;
+    paused(overrides?: CallOverrides): Promise<boolean>;
 
     reflectionFromToken(
       tAmount: BigNumberish,
@@ -936,17 +881,7 @@ export class PositionToken extends BaseContract {
     setBotKeeper(_newKeeper: string, overrides?: CallOverrides): Promise<void>;
 
     setGenesisReward(
-      _amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setInsuranceFund(
-      _newAddress: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setPositionStakingManager(
-      _newAddress: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -955,7 +890,7 @@ export class PositionToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setWhitelistSaleContract(
+    setTreasuryAddress(
       _newAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -991,7 +926,19 @@ export class PositionToken extends BaseContract {
 
     transferTaxRate(overrides?: CallOverrides): Promise<number>;
 
-    whitelistSaleContract(overrides?: CallOverrides): Promise<string>;
+    treasuryContract(overrides?: CallOverrides): Promise<string>;
+
+    "treasuryTransfer(address[],uint256[])"(
+      recipients: string[],
+      amounts: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "treasuryTransfer(address,uint256)"(
+      recipient: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     whitelistSaleDistributed(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -1038,6 +985,8 @@ export class PositionToken extends BaseContract {
       { previousOwner: string; newOwner: string }
     >;
 
+    Paused(account?: null): TypedEventFilter<[string], { account: string }>;
+
     Transfer(
       from?: string | null,
       to?: string | null,
@@ -1047,13 +996,21 @@ export class PositionToken extends BaseContract {
       { from: string; to: string; value: BigNumber }
     >;
 
-    TransferStatusChanged(
-      isPaused?: boolean | null
-    ): TypedEventFilter<[boolean], { isPaused: boolean }>;
+    TreasuryContractChanged(
+      previusAAddress?: string | null,
+      newAddress?: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previusAAddress: string; newAddress: string }
+    >;
+
+    Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
 
   estimateGas: {
     AIRDROP_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    BASE_MINT(overrides?: CallOverrides): Promise<BigNumber>;
 
     WHITELIST_SALE_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1094,12 +1051,6 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    distributeWhitelistSale(
-      _receiver: string,
-      _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     donate(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1132,16 +1083,12 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    insuranceFund(overrides?: CallOverrides): Promise<BigNumber>;
-
     isExcluded(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isGenesisAddress(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    isTransferPaused(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
       _receiver: string,
@@ -1159,7 +1106,7 @@ export class PositionToken extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    positionStakingManager(overrides?: CallOverrides): Promise<BigNumber>;
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     reflectionFromToken(
       tAmount: BigNumberish,
@@ -1181,17 +1128,7 @@ export class PositionToken extends BaseContract {
     ): Promise<BigNumber>;
 
     setGenesisReward(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setInsuranceFund(
-      _newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setPositionStakingManager(
-      _newAddress: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1200,7 +1137,7 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setWhitelistSaleContract(
+    setTreasuryAddress(
       _newAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1236,13 +1173,27 @@ export class PositionToken extends BaseContract {
 
     transferTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    whitelistSaleContract(overrides?: CallOverrides): Promise<BigNumber>;
+    treasuryContract(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "treasuryTransfer(address[],uint256[])"(
+      recipients: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "treasuryTransfer(address,uint256)"(
+      recipient: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     whitelistSaleDistributed(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     AIRDROP_AMOUNT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    BASE_MINT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     WHITELIST_SALE_AMOUNT(
       overrides?: CallOverrides
@@ -1288,12 +1239,6 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    distributeWhitelistSale(
-      _receiver: string,
-      _value: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     donate(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1328,8 +1273,6 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    insuranceFund(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     isExcluded(
       account: string,
       overrides?: CallOverrides
@@ -1339,8 +1282,6 @@ export class PositionToken extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    isTransferPaused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     mint(
       _receiver: string,
@@ -1358,9 +1299,7 @@ export class PositionToken extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    positionStakingManager(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     reflectionFromToken(
       tAmount: BigNumberish,
@@ -1382,17 +1321,7 @@ export class PositionToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setGenesisReward(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setInsuranceFund(
-      _newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPositionStakingManager(
-      _newAddress: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1401,7 +1330,7 @@ export class PositionToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setWhitelistSaleContract(
+    setTreasuryAddress(
       _newAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1437,8 +1366,18 @@ export class PositionToken extends BaseContract {
 
     transferTaxRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    whitelistSaleContract(
-      overrides?: CallOverrides
+    treasuryContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "treasuryTransfer(address[],uint256[])"(
+      recipients: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "treasuryTransfer(address,uint256)"(
+      recipient: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     whitelistSaleDistributed(

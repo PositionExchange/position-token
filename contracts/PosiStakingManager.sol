@@ -5,13 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./IPositionReferral.sol";
+import "./interfaces/IPositionReferral.sol";
+import "./interfaces/IPositionToken.sol";
 
-interface IPositionToken {
-    function mint(address receiver, uint256 amount) external;
-    function transferTaxRate() external view returns (uint16) ;
-    function balanceOf(address account) external view returns (uint256) ;
-    function transfer(address to, uint value) external returns (bool);
+interface IPosiTreasury {
+    function mint(address recipient, uint256 amount) external;
 }
 
 // PosiStakingManager is the master of Position. He can make Position and he is a fair guy.
@@ -56,6 +54,7 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
 
     // The Position TOKEN!
     IPositionToken public position;
+    IPosiTreasury public posiTreasury;
     // Dev address.
     address public devAddress;
     // Deposit Fee address
@@ -66,6 +65,8 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
     uint256 public constant BONUS_MULTIPLIER = 1;
     // Max harvest interval: 14 days.
     uint256 public constant MAXIMUM_HARVEST_INTERVAL = 14 days;
+    uint256 public constant MAX_STAKING_ALLOCATION = 80*10**6*10**18; //80m
+
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -77,6 +78,8 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
     uint256 public startBlock;
     // Total locked up rewards
     uint256 public totalLockedUpRewards;
+
+    uint256 public stakingMinted;
 
     // Position referral contract address.
     IPositionReferral public positionReferral;
@@ -110,10 +113,12 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
 
     constructor(
         IPositionToken _position,
+        IPosiTreasury _posiTreasury,
         uint256 _startBlock,
         uint256 _positionPerBlock
     ) public {
         position = _position;
+        posiTreasury = _posiTreasury;
         startBlock = _startBlock;
         positionPerBlock = _positionPerBlock;
 
@@ -246,6 +251,7 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
 
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
+        require(stakingMinted <= MAX_STAKING_ALLOCATION, "No more staking");
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return;
@@ -260,9 +266,11 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
         .mul(positionPerBlock)
         .mul(pool.allocPoint)
         .div(totalAllocPoint);
-        position.mint(address(this),positionReward);
+
+        stakingMinted = stakingMinted.add(positionReward.add(positionReward.div(10)));
+        posiTreasury.mint(address(this), positionReward);
         // transfer 10% to the dev wallet
-        position.mint(devAddress, positionReward.div(10));
+        posiTreasury.mint(devAddress, positionReward.div(10));
         pool.accPositionPerShare = pool.accPositionPerShare.add(
             positionReward.mul(1e12).div(lpSupply)
         );
@@ -439,7 +447,7 @@ contract PosiStakingManager is Ownable, ReentrancyGuard {
 
             if (referrer != address(0) && commissionAmount > 0) {
                 if(position.balanceOf(address(this)) < commissionAmount){
-                    position.mint(address(this), commissionAmount);
+                    posiTreasury.mint(address(this), commissionAmount);
                 }
                 position.transfer(referrer, commissionAmount);
                 positionReferral.recordReferralCommission(

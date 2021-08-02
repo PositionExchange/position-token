@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-contract PositionToken is Context, IERC20, Ownable, Pausable {
+contract PositionTokenV2 is Context, IERC20, Ownable, Pausable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -27,7 +27,7 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     uint256 private _rTotal;
     uint256 private _tFeeTotal;
 
-    string private _name = 'Position';
+    string private _name = 'Position Token';
     string private _symbol = 'POSI';
     uint8 private _decimals = 18;
 
@@ -36,6 +36,7 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     uint256 public constant WHITELIST_SALE_AMOUNT = 5*10**6*10**18; //5,000,000
     uint256 public aidropDistributed;
     uint256 public whitelistSaleDistributed;
+    uint256 public constant BASE_MINT = 1 * 10**5 * 10**18;
     // bot keeper helps watch the price drop then pause the transfer function
     address public botKeeper;
     address public treasuryContract;
@@ -54,10 +55,10 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
 
     constructor () public {
         address sender = _msgSender();
-        uint256 amount =  5 * 10**6 * 10**18;
+        uint256 amount =  BASE_MINT*100; //10m
         _tTotal = amount;
         uint256 _max = MAX.div(1e36);
-        _rTotal = ((_max - (_max % _tTotal)));
+        _rTotal = ((_max - (_max % BASE_MINT)));
         _rOwned[sender] =  _rTotal;
         emit Transfer(address(0), sender, amount);
     }
@@ -175,7 +176,7 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         uint256 _currentRate = _getRate();
         _tTotal = _tTotal.add(AIRDROP_AMOUNT);
         // rTotal should increase as well
-        _rTotal = _currentRate.mul(_tTotal);
+        _rTotal = _rTotal.add(AIRDROP_AMOUNT.mul(_currentRate));
         _isRegisterAirdropDistribution = true;
     }
 
@@ -190,8 +191,6 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         emit BotKeeperChanged(botKeeper, _newKeeper);
         botKeeper = _newKeeper;
     }
-
-
 
     function setTreasuryAddress(address _newAddress) public onlyOwner {
         emit TreasuryContractChanged(treasuryContract, _newAddress);
@@ -264,16 +263,14 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
-
+    
     function _mint(address receiver, uint256 amount) private {
-        require(amount % 100000*10**_decimals == 0, "Cannot mint this amount");
-        require(!_isExcluded[receiver], "Cannot mint to excluded account");
-        uint256 _currentRate = _getRate();
+        require(amount % BASE_MINT == 0, "Cannot mint this amount");
+        uint256 _rate = _getRate();
         _tTotal = _tTotal.add(amount);
         // rTotal should be increased as well
-        _rTotal = _currentRate.mul(_tTotal);
-        uint256 _newRate = _getRate();
-        _rOwned[receiver] =  _rOwned[receiver].add(amount.mul(_newRate));
+        _rTotal = _rTotal.add(amount.mul(_rate));
+        _rOwned[receiver] = _rOwned[receiver].add(amount.mul(_rate));
         if(_isExcluded[receiver]){
             _tOwned[receiver] = _tOwned[receiver].add(amount);
         }
@@ -281,14 +278,13 @@ contract PositionToken is Context, IERC20, Ownable, Pausable {
     }
 
     function _burn(uint256 amount) private {
-        require(amount % 100000*10**_decimals == 0, "Cannot burn this amount");
+        require(amount % BASE_MINT == 0, "Cannot burn this amount");
         address sender = _msgSender();
-        uint256 _currentRate = _getRate();
+        uint256 _rate = _getRate();
         _tTotal = _tTotal.sub(amount);
-        // rTotal should be increased as well
-        _rTotal = _currentRate.mul(_tTotal);
-        uint256 _newRate = _getRate();
-        _rOwned[sender] =  _rOwned[sender].sub(amount.mul(_newRate));
+        // rTotal should be decreased as well
+        _rTotal = _rTotal.sub(amount.mul(_rate));
+        _rOwned[sender] =  _rOwned[sender].sub(amount.mul(_rate));
         if(_isExcluded[sender]){
              _tOwned[sender] = _tOwned[sender].sub(amount);
         }
